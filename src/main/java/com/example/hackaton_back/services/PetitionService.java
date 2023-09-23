@@ -1,15 +1,21 @@
 package com.example.hackaton_back.services;
 
 
+import com.example.hackaton_back.dao.CommentDTO;
 import com.example.hackaton_back.dao.PetitionContent;
 import com.example.hackaton_back.dao.PetitionDTO;
 import com.example.hackaton_back.entities.petitions.Petition;
+import com.example.hackaton_back.entities.petitions.PetitionComment;
+import com.example.hackaton_back.entities.petitions.PetitionCommentLike;
 import com.example.hackaton_back.entities.petitions.PetitionLike;
 import com.example.hackaton_back.entities.User;
 import com.example.hackaton_back.payload.request.CreatePetitionRequest;
-import com.example.hackaton_back.repositories.PetitionLikeRepository;
-import com.example.hackaton_back.repositories.PetitionRepository;
+import com.example.hackaton_back.repositories.petitions.PetitionCommentLikeRepository;
+import com.example.hackaton_back.repositories.petitions.PetitionCommentRepository;
+import com.example.hackaton_back.repositories.petitions.PetitionLikeRepository;
+import com.example.hackaton_back.repositories.petitions.PetitionRepository;
 import com.example.hackaton_back.repositories.UserRepository;
+import com.example.hackaton_back.services.facades.CommentFacade;
 import com.example.hackaton_back.services.facades.PetitionFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,21 +27,27 @@ import java.util.List;
 public class PetitionService {
     private final PetitionRepository petitionRepository;
     private final PetitionLikeRepository petitionLikeRepository;
+    private final PetitionCommentRepository petitionCommentRepository;
+    private final PetitionCommentLikeRepository petitionCommentLikeRepository;
     private final PhotoService photoService;
     private final UserRepository userRepository;
     private final PetitionFacade petitionFacade;
+    private final CommentFacade commentFacade;
 
 
     @Autowired
-    public PetitionService(PetitionRepository petitionRepository, PetitionLikeRepository petitionLikeRepository, PhotoService photoService, UserRepository userRepository, PetitionFacade petitionFacade) {
+    public PetitionService(PetitionRepository petitionRepository, PetitionLikeRepository petitionLikeRepository, PetitionCommentRepository petitionCommentRepository, PetitionCommentLikeRepository petitionCommentLikeRepository, PhotoService photoService, UserRepository userRepository, PetitionFacade petitionFacade, CommentFacade commentFacade) {
         this.petitionRepository = petitionRepository;
         this.petitionLikeRepository = petitionLikeRepository;
+        this.petitionCommentRepository = petitionCommentRepository;
+        this.petitionCommentLikeRepository = petitionCommentLikeRepository;
         this.photoService = photoService;
         this.userRepository = userRepository;
         this.petitionFacade = petitionFacade;
+        this.commentFacade = commentFacade;
     }
 
-    public void createPetition(CreatePetitionRequest createPetitionRequest) {
+    public Petition createPetition(CreatePetitionRequest createPetitionRequest) {
         User user = getUserByEmail(createPetitionRequest.getEmail());
         Petition petition = new Petition();
         petition.setKgTitle(createPetitionRequest.getKgTitle());
@@ -50,7 +62,7 @@ public class PetitionService {
             throw new RuntimeException("Ошибка сохранения фото : " + e.getMessage());
         }
 
-        petitionRepository.save(petition);
+        return petitionRepository.save(petition);
     }
 
     public List<PetitionDTO> getAllPetitions(String email) {
@@ -73,11 +85,20 @@ public class PetitionService {
         }else{
             if(petitionLike1.getIsLike() == isLike)
                 petitionLikeRepository.delete(petitionLike1);
-            else
+            else{
                 petitionLike1.setIsLike(isLike);
+                petitionLikeRepository.save(petitionLike1);
+            }
         }
     }
 
+    public List<CommentDTO> getComments(String email, Long petitionId){
+        Petition petition = getPetitionById(petitionId);
+        User user = getUserByEmail(email);
+
+        List<PetitionComment> comments = petitionCommentRepository.findByPetition(petition);
+        return commentFacade.commentsToCommentsDTOs(comments,user);
+    }
     private PetitionLike getPetitionLikeByUserAndPetition(User user, Petition petition) {
         return petitionLikeRepository.getPetitionLikeByUserAndPetition(user, petition).orElse(null);
     }
@@ -97,5 +118,55 @@ public class PetitionService {
 
     public List<PetitionContent> getPetitionsToSpeech() {
         return petitionFacade.mapPetitionsToPetitionContents(petitionRepository.findAll());
+    }
+
+    public PetitionComment createComment(String email, Long petitionId, String comment) {
+        Petition petition = getPetitionById(petitionId);
+        User user = getUserByEmail(email);
+        PetitionComment petitionComment = new PetitionComment();
+        petitionComment.setPetition(petition);
+        petitionComment.setComment(comment);
+        petitionComment.setUser(user);
+        return petitionCommentRepository.save(petitionComment);
+    }
+
+    public void followPetition(String email, Long petitionId) {
+        User user = getUserByEmail(email);
+        Petition petition = getPetitionById(petitionId);
+        if(petition.getFollowers().contains(user)){
+            petition.removeFollower(user);
+        }else{
+            petition.addFollower(user);
+        }
+        petitionRepository.save(petition);
+    }
+
+    public void likeComment(String email, Long commentId, Boolean isLike) {
+        User user = getUserByEmail(email);
+        PetitionComment petitionComment = getPetitionCommentById(commentId);
+        PetitionCommentLike commentLike = getPetitionCommentLike(user, petitionComment);
+
+        if (commentLike == null) {
+            PetitionCommentLike petitionCommentLike = new PetitionCommentLike();
+            petitionCommentLike.setComment(petitionComment);
+            petitionCommentLike.setUser(user);
+            petitionCommentLike.setIsLike(isLike);
+            petitionCommentLikeRepository.save(petitionCommentLike);
+        }else{
+            if(commentLike.getIsLike() == isLike)
+                petitionCommentLikeRepository.delete(commentLike);
+            else{
+                commentLike.setIsLike(isLike);
+                petitionCommentLikeRepository.save(commentLike);
+            }
+        }
+    }
+
+    private PetitionCommentLike getPetitionCommentLike(User user, PetitionComment petitionComment) {
+        return petitionCommentLikeRepository.findByUserAndComment(user,petitionComment).orElse(null);
+    }
+
+    private PetitionComment getPetitionCommentById(Long commentId) {
+        return petitionCommentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("Комментарий не найден"));
     }
 }

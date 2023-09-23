@@ -4,7 +4,6 @@ import com.example.hackaton_back.entities.laws.Chapter;
 import com.example.hackaton_back.entities.laws.Law;
 import com.example.hackaton_back.entities.laws.LawCategory;
 import com.example.hackaton_back.entities.laws.Section;
-import com.example.hackaton_back.payload.request.CreateLawRequest;
 import com.example.hackaton_back.services.LawService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,6 +23,35 @@ public class LawController {
     @Autowired
     public LawController(LawService lawService) {
         this.lawService = lawService;
+    }
+
+    @GetMapping("/laws")
+    public ResponseEntity<Map<String, List<Law>>> getLaws(){
+        Map<String, List<Law>> data = new HashMap<>();
+        List<Law> laws = lawService.getAll();
+        data.put("data", laws);
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+    @GetMapping("/categories")
+    public ResponseEntity<Map<String, List<LawCategory>>> getCategories(){
+        Map<String, List<LawCategory>> data = new HashMap<>();
+        List<LawCategory> categories = lawService.getAllCategories();
+        data.put("data", categories);
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+    @GetMapping("/sections")
+    public ResponseEntity<Map<String, List<Section>>> getSections(){
+        Map<String, List<Section>> data = new HashMap<>();
+        List<Section> sections = lawService.getAllSections();
+        data.put("data", sections);
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+    @GetMapping("/chapters")
+    public ResponseEntity<Map<String, List<Chapter>>> getChapters(){
+        Map<String, List<Chapter>> data = new HashMap<>();
+        List<Chapter> chapters = lawService.getAllChapters();
+        data.put("data", chapters);
+        return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
     @PostMapping("/create-law")
@@ -37,7 +66,6 @@ public class LawController {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
-
     }
 
     @PostMapping("/create-category")

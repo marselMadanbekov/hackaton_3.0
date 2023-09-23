@@ -1,7 +1,10 @@
 package com.example.hackaton_back.controllers;
 
+import com.example.hackaton_back.dao.CommentDTO;
 import com.example.hackaton_back.dao.PetitionContent;
 import com.example.hackaton_back.dao.PetitionDTO;
+import com.example.hackaton_back.entities.petitions.Petition;
+import com.example.hackaton_back.entities.petitions.PetitionComment;
 import com.example.hackaton_back.payload.request.CreatePetitionRequest;
 import com.example.hackaton_back.services.PetitionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +38,8 @@ public class PetitionController {
                                                  @RequestParam MultipartFile photo){
         Map<String,String> response = new HashMap<>();
         try{
-            petitionService.createPetition(new CreatePetitionRequest(email,ruTitle,kgTitle,ruDescription,kgDescription,photo));
-            return ResponseEntity.ok(null);
+            Petition petition = petitionService.createPetition(new CreatePetitionRequest(email,ruTitle,kgTitle,ruDescription,kgDescription,photo));
+            return ResponseEntity.ok(petition);
         }catch (RuntimeException e){
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -44,12 +47,22 @@ public class PetitionController {
     }
 
 
-    @GetMapping("")
-    public ResponseEntity<Object> getPetitions(@RequestBody String email){
+    @GetMapping("/{email}")
+    public ResponseEntity<Object> getPetitions(@PathVariable String email){
         List<PetitionDTO> petitions = petitionService.getAllPetitions(email);
-        return new ResponseEntity<>(petitions, HttpStatus.OK);
+        Map<String,List<PetitionDTO>> data = new HashMap<>();
+        data.put("data",petitions);
+        return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
+    @GetMapping("/comments")
+    public ResponseEntity<Map<String, List<CommentDTO>>> getComments(@RequestParam String email,
+                                                                     @RequestParam Long petitionId){
+        List<CommentDTO> comments = petitionService.getComments(email,petitionId);
+        Map<String,List<CommentDTO>> data = new HashMap<>();
+        data.put("data", comments);
+        return new ResponseEntity<>(data,HttpStatus.OK);
+    }
     @GetMapping("/to-speech")
     public ResponseEntity<Map<String,List<PetitionContent>>> getPetitionsToSpeech(){
         Map<String,List<PetitionContent>> data = new HashMap<>();
@@ -65,7 +78,47 @@ public class PetitionController {
         Map<String,String> response = new HashMap<>();
         try{
             petitionService.likePetition(email,petitionId,isLike);
-            return ResponseEntity.ok(null);
+            return ResponseEntity.ok("success");
+        }catch (RuntimeException e){
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/comment-like")
+    public ResponseEntity<Object> likePetitionComment(@RequestParam String email,
+                                                      @RequestParam Long commentId,
+                                                      @RequestParam Boolean isLike){
+        Map<String,String> response = new HashMap<>();
+        try{
+            petitionService.likeComment(email, commentId, isLike);
+            return ResponseEntity.ok("success");
+        }catch (RuntimeException e){
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/follow")
+    public ResponseEntity<Object> followPetition(@RequestParam String email,
+                                                 @RequestParam Long petitionId){
+        try{
+            petitionService.followPetition(email,petitionId);
+            return ResponseEntity.ok("success");
+        }catch (RuntimeException e){
+            Map<String,String> response = new HashMap<>();
+            return new ResponseEntity<>(response.put("error",e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/comment")
+    public ResponseEntity<Object> comment(@RequestParam String email,
+                                          @RequestParam Long petitionId,
+                                          @RequestParam String comment){
+        Map<String,String> response = new HashMap<>();
+        try{
+            PetitionComment petitionComment = petitionService.createComment(email, petitionId,comment);
+            return new ResponseEntity<>(petitionComment, HttpStatus.OK);
         }catch (RuntimeException e){
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

@@ -11,6 +11,8 @@ public class PetitionDTO {
     private String kgTitle;
     private String ruDescription;
     private String kgDescription;
+    private Integer disLikeCount;
+    private Integer likeCount;
     private String photo;
-    private Boolean isFollow;
+    private Boolean isLike;
 }

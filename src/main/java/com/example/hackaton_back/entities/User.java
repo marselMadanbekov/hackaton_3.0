@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -34,6 +35,20 @@ public class User {
         this.lastUpdate = Date.valueOf(LocalDate.now());
     }
     public User(){}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return email.equals(user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
+    }
+
     public User(Long id, String email, String password){
         this.id = id;
         this.email = email;

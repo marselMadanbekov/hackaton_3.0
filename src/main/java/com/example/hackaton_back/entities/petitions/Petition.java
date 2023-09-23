@@ -37,4 +37,12 @@ public class Petition {
     public void updated(){
         this.lastUpdate = Date.valueOf(LocalDate.now());
     }
+
+    public void removeFollower(User user) {
+        this.getFollowers().remove(user);
+    }
+
+    public void addFollower(User user) {
+        this.getFollowers().add(user);
+    }
 }

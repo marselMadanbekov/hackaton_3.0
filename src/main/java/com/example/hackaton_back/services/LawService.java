@@ -4,12 +4,14 @@ import com.example.hackaton_back.entities.laws.Chapter;
 import com.example.hackaton_back.entities.laws.Law;
 import com.example.hackaton_back.entities.laws.LawCategory;
 import com.example.hackaton_back.entities.laws.Section;
-import com.example.hackaton_back.repositories.ChapterRepository;
-import com.example.hackaton_back.repositories.LawCategoryRepository;
-import com.example.hackaton_back.repositories.LawRepository;
-import com.example.hackaton_back.repositories.SectionRepository;
+import com.example.hackaton_back.repositories.laws.ChapterRepository;
+import com.example.hackaton_back.repositories.laws.LawCategoryRepository;
+import com.example.hackaton_back.repositories.laws.LawRepository;
+import com.example.hackaton_back.repositories.laws.SectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class LawService {
@@ -70,5 +72,21 @@ public class LawService {
     }
     private Section getSectionById(Long id){
         return sectionRepository.findById(id).orElseThrow(() -> new RuntimeException("Раздел не найден"));
+    }
+
+    public List<Law> getAll() {
+        return lawRepository.findAll();
+    }
+
+    public List<LawCategory> getAllCategories() {
+        return lawCategoryRepository.findAll();
+    }
+
+    public List<Section> getAllSections() {
+        return sectionRepository.findAll();
+    }
+
+    public List<Chapter> getAllChapters() {
+        return chapterRepository.findAll();
     }
 }
