@@ -35,12 +35,12 @@ public class PetitionController {
                                                  @RequestParam String ruDescription,
                                                  @RequestParam String kgDescription,
                                                  @RequestParam String email,
-                                                 @RequestParam MultipartFile photo){
-        Map<String,String> response = new HashMap<>();
-        try{
-            Petition petition = petitionService.createPetition(new CreatePetitionRequest(email,ruTitle,kgTitle,ruDescription,kgDescription,photo));
+                                                 @RequestParam MultipartFile photo) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            Petition petition = petitionService.createPetition(new CreatePetitionRequest(email, ruTitle, kgTitle, ruDescription, kgDescription, photo));
             return ResponseEntity.ok(petition);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -48,24 +48,31 @@ public class PetitionController {
 
 
     @GetMapping("/{email}")
-    public ResponseEntity<Object> getPetitions(@PathVariable String email){
+    public ResponseEntity<Object> getPetitions(@PathVariable String email) {
         List<PetitionDTO> petitions = petitionService.getAllPetitions(email);
-        Map<String,List<PetitionDTO>> data = new HashMap<>();
-        data.put("data",petitions);
+        Map<String, List<PetitionDTO>> data = new HashMap<>();
+        data.put("data", petitions);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
-    @GetMapping("/comments")
-    public ResponseEntity<Map<String, List<CommentDTO>>> getComments(@RequestParam String email,
-                                                                     @RequestParam Long petitionId){
-        List<CommentDTO> comments = petitionService.getComments(email,petitionId);
-        Map<String,List<CommentDTO>> data = new HashMap<>();
-        data.put("data", comments);
-        return new ResponseEntity<>(data,HttpStatus.OK);
+    @GetMapping("/comments/{email}/{petitionId}")
+    public ResponseEntity<Object> getComments(@PathVariable String email,
+                                              @PathVariable Long petitionId) {
+        try {
+            List<CommentDTO> comments = petitionService.getComments(email, petitionId);
+            Map<String, List<CommentDTO>> data = new HashMap<>();
+            data.put("data", comments);
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        }catch (RuntimeException e){
+            Map<String,String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
+
     @GetMapping("/to-speech")
-    public ResponseEntity<Map<String,List<PetitionContent>>> getPetitionsToSpeech(){
-        Map<String,List<PetitionContent>> data = new HashMap<>();
+    public ResponseEntity<Map<String, List<PetitionContent>>> getPetitionsToSpeech() {
+        Map<String, List<PetitionContent>> data = new HashMap<>();
         List<PetitionContent> petitions = petitionService.getPetitionsToSpeech();
         data.put("data", petitions);
         return new ResponseEntity<>(data, HttpStatus.OK);
@@ -74,12 +81,12 @@ public class PetitionController {
     @PostMapping("/like")
     public ResponseEntity<Object> likePetition(@RequestParam String email,
                                                @RequestParam Long petitionId,
-                                               @RequestParam Boolean isLike){
-        Map<String,String> response = new HashMap<>();
-        try{
-            petitionService.likePetition(email,petitionId,isLike);
+                                               @RequestParam Boolean isLike) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            petitionService.likePetition(email, petitionId, isLike);
             return ResponseEntity.ok("success");
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -88,12 +95,12 @@ public class PetitionController {
     @PostMapping("/comment-like")
     public ResponseEntity<Object> likePetitionComment(@RequestParam String email,
                                                       @RequestParam Long commentId,
-                                                      @RequestParam Boolean isLike){
-        Map<String,String> response = new HashMap<>();
-        try{
+                                                      @RequestParam Boolean isLike) {
+        Map<String, String> response = new HashMap<>();
+        try {
             petitionService.likeComment(email, commentId, isLike);
             return ResponseEntity.ok("success");
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -101,25 +108,25 @@ public class PetitionController {
 
     @PostMapping("/follow")
     public ResponseEntity<Object> followPetition(@RequestParam String email,
-                                                 @RequestParam Long petitionId){
-        try{
-            petitionService.followPetition(email,petitionId);
+                                                 @RequestParam Long petitionId) {
+        try {
+            petitionService.followPetition(email, petitionId);
             return ResponseEntity.ok("success");
-        }catch (RuntimeException e){
-            Map<String,String> response = new HashMap<>();
-            return new ResponseEntity<>(response.put("error",e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (RuntimeException e) {
+            Map<String, String> response = new HashMap<>();
+            return new ResponseEntity<>(response.put("error", e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
     @PostMapping("/comment")
     public ResponseEntity<Object> comment(@RequestParam String email,
                                           @RequestParam Long petitionId,
-                                          @RequestParam String comment){
-        Map<String,String> response = new HashMap<>();
-        try{
-            PetitionComment petitionComment = petitionService.createComment(email, petitionId,comment);
+                                          @RequestParam String comment) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            PetitionComment petitionComment = petitionService.createComment(email, petitionId, comment);
             return new ResponseEntity<>(petitionComment, HttpStatus.OK);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
