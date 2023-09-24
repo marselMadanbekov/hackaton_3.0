@@ -1,5 +1,6 @@
 package com.example.hackaton_back.entities.petitions;
 
+import com.example.hackaton_back.entities.Analyze;
 import com.example.hackaton_back.entities.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class Petition {
     private String ruDescription;
     private String kgDescription;
     private String photo;
+    @OneToOne
+    private Analyze analyze;
 
     @ManyToMany
     private List<User> followers;

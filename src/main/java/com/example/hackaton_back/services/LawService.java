@@ -89,4 +89,19 @@ public class LawService {
     public List<Chapter> getAllChapters() {
         return chapterRepository.findAll();
     }
+
+    public List<Section> getSectionsByCategoryId(Long categoryId) {
+        LawCategory category = getCategoryById(categoryId);
+        return sectionRepository.findByCategory(category);
+    }
+
+    public List<Chapter> getChaptersBySectionId(Long sectionId) {
+        Section section = getSectionById(sectionId);
+        return chapterRepository.findBySection(section);
+    }
+
+    public List<Law> getLawsByChapterId(Long chapterId) {
+        Chapter chapter = getChapterById(chapterId);
+        return lawRepository.findByChapter(chapter);
+    }
 }

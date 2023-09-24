@@ -39,18 +39,25 @@ public class LawController {
         data.put("data", categories);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
-    @GetMapping("/sections")
-    public ResponseEntity<Map<String, List<Section>>> getSections(){
+    @GetMapping("/sections/{categoryId}")
+    public ResponseEntity<Map<String, List<Section>>> getSections(@PathVariable Long categoryId){
         Map<String, List<Section>> data = new HashMap<>();
-        List<Section> sections = lawService.getAllSections();
+        List<Section> sections = lawService.getSectionsByCategoryId(categoryId);
         data.put("data", sections);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
-    @GetMapping("/chapters")
-    public ResponseEntity<Map<String, List<Chapter>>> getChapters(){
+    @GetMapping("/chapters/{sectionId}")
+    public ResponseEntity<Map<String, List<Chapter>>> getChapters(@PathVariable Long sectionId){
         Map<String, List<Chapter>> data = new HashMap<>();
-        List<Chapter> chapters = lawService.getAllChapters();
+        List<Chapter> chapters = lawService.getChaptersBySectionId(sectionId);
         data.put("data", chapters);
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+    @GetMapping("/laws/{chapterId}")
+    public ResponseEntity<Map<String, List<Law>>> getLaws(@PathVariable Long chapterId){
+        Map<String, List<Law>> data = new HashMap<>();
+        List<Law> laws = lawService.getLawsByChapterId(chapterId);
+        data.put("data", laws);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 

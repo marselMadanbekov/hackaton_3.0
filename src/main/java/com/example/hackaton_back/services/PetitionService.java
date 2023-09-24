@@ -29,6 +29,7 @@ public class PetitionService {
     private final PetitionLikeRepository petitionLikeRepository;
     private final PetitionCommentRepository petitionCommentRepository;
     private final PetitionCommentLikeRepository petitionCommentLikeRepository;
+    private final GPTService gptService;
     private final PhotoService photoService;
     private final UserRepository userRepository;
     private final PetitionFacade petitionFacade;
@@ -36,11 +37,12 @@ public class PetitionService {
 
 
     @Autowired
-    public PetitionService(PetitionRepository petitionRepository, PetitionLikeRepository petitionLikeRepository, PetitionCommentRepository petitionCommentRepository, PetitionCommentLikeRepository petitionCommentLikeRepository, PhotoService photoService, UserRepository userRepository, PetitionFacade petitionFacade, CommentFacade commentFacade) {
+    public PetitionService(PetitionRepository petitionRepository, PetitionLikeRepository petitionLikeRepository, PetitionCommentRepository petitionCommentRepository, PetitionCommentLikeRepository petitionCommentLikeRepository, GPTService gptService, PhotoService photoService, UserRepository userRepository, PetitionFacade petitionFacade, CommentFacade commentFacade) {
         this.petitionRepository = petitionRepository;
         this.petitionLikeRepository = petitionLikeRepository;
         this.petitionCommentRepository = petitionCommentRepository;
         this.petitionCommentLikeRepository = petitionCommentLikeRepository;
+        this.gptService = gptService;
         this.photoService = photoService;
         this.userRepository = userRepository;
         this.petitionFacade = petitionFacade;
@@ -61,7 +63,7 @@ public class PetitionService {
         } catch (IOException e) {
             throw new RuntimeException("Ошибка сохранения фото : " + e.getMessage());
         }
-
+        gptService.analyzePetition(petition);
         return petitionRepository.save(petition);
     }
 

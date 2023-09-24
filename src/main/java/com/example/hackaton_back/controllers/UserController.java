@@ -39,6 +39,20 @@ public class UserController {
         }
     }
 
+    @PostMapping("/set-identification")
+    public ResponseEntity<Map<String,String>> setIdentification(@RequestParam String face,
+                                                                @RequestParam String passport,
+                                                                @RequestParam String email){
+        Map<String,String> response = new HashMap<>();
+        try{
+            userService.setIdentification(face, passport,email);
+            response.put("message","Successfully");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }catch (RuntimeException e){
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
     @PostMapping("/signIn")
     public ResponseEntity<Map<String, String>> signIn(@RequestBody CreateUserRequest createUserRequest) {
         Map<String, String> response = new HashMap<>();

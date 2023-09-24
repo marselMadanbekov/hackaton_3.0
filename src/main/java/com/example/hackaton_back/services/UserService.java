@@ -37,4 +37,11 @@ public class UserService {
         if(!Objects.equals(user.getPassword(), createUserRequest.getPassword()))
             throw new RuntimeException("Неправильный пароль");
     }
+
+    public void setIdentification(String face, String passport, String email) {
+        User user = getUserByEmail(email);
+        user.setPassport(passport);
+        user.setFace(face);
+        userRepository.save(user);
+    }
 }
